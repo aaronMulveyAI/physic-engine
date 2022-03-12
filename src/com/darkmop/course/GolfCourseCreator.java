@@ -36,13 +36,13 @@ public class GolfCourseCreator {
 			double sFrictionSand = Double.parseDouble(scanner.nextLine().replace("muss = ", ""));
 
 			Vec2D sandTopRightCorner = new Vec2D(
-					Double.parseDouble(rangeX.split("<")[0]),
-					Double.parseDouble(rangeY.split("<")[0])
+					Double.parseDouble(rangeX.split("<")[2]),
+					Double.parseDouble(rangeY.split("<")[2])
 			);
 
 			Vec2D sandBottomLeftCorner = new Vec2D(
-					Double.parseDouble(rangeX.split("<")[2]),
-					Double.parseDouble(rangeY.split("<")[2])
+					Double.parseDouble(rangeX.split("<")[0]),
+					Double.parseDouble(rangeY.split("<")[0])
 			);
 
 			course.addSandPit(sandTopRightCorner, sandBottomLeftCorner, kFrictionSand, sFrictionSand);

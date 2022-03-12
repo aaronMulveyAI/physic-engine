@@ -31,6 +31,18 @@ public class GolfCourse {
 		sandFriction = new Vec2D(kineticFriction, staticFriction);
 	}
 
+	public Vec2D getStartPos() {
+		return startPos;
+	}
+
+	public Vec2D getTargetPos() {
+		return targetPos;
+	}
+
+	public double getTargetRadius() {
+		return targetRadius;
+	}
+
 	public double getHeight(Vec2D pos) {
 		return profile.eval(pos);
 	}
@@ -57,23 +69,10 @@ public class GolfCourse {
 		return inSand(pos) ? sandFriction.getY() : grassFriction.getY();
 	}
 
-	public double[][] generateHeightMap(Vec2D bottomLeft, Vec2D topRight, int width, int height) {
-		double data[][] = new double[height][width];
-		Vec2D step = new Vec2D((topRight.getX() - bottomLeft.getX()) / width, (topRight.getY() - bottomLeft.getY()) / height);
-
-		for(int i = 0; i < height; i++) {
-			for(int j = 0; j < width; j++) {
-				Vec2D pos = new Vec2D(bottomLeft.getX() + step.getX() * j, topRight.getY() - step.getY() * i);
-				data[i][j] = getHeight(pos);
-			}
-		}
-
-		return data;
-	}
-
 	@Override
 	public String toString() {
-		String ret = "GolfCourse{\n" +
+		String ret =
+				"GolfCourse{\n" +
 				"  profile = " + profile + "\n" +
 				"  startPos = " + startPos + "\n" +
 				"  targetPos = " + targetPos + "\n" +
@@ -81,9 +80,10 @@ public class GolfCourse {
 				"  grassFriction = " + grassFriction + "\n";
 
 		if(hasSandPit) {
-			ret += "  sandPitTopLeft = " + sandPitTopRight + "\n" +
-					"  sandPitBottomRight = " + sandPitBottomLeft + "\n" +
-					"  sandFriction = " + sandFriction + "\n";
+			ret +=
+				"  sandPitTopRight = " + sandPitTopRight + "\n" +
+				"  sandPitBottomLeft = " + sandPitBottomLeft + "\n" +
+				"  sandFriction = " + sandFriction + "\n";
 		}
 
 		return ret + "}";

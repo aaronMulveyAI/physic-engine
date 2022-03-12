@@ -1,6 +1,6 @@
 package com.darkmop.util;
 
-public class PrintPixel {
+public class ConsoleUtils {
 	public static void printPixel(int r, int g, int b) {
 		r = r < 0 ? 0 : r > 255 ? 255 : r;
 		g = g < 0 ? 0 : g > 255 ? 255 : g;
