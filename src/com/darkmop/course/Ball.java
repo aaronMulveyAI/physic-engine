@@ -2,7 +2,8 @@ package com.darkmop.course;
 
 
 public class Ball {
-		
+	
+    public GolfCourse course;
 	
 	private double VelocityX;
 	private double positionX;
@@ -77,6 +78,9 @@ public class Ball {
 	//TODO: ACCELERATION METHODDDDD!!!! &&&&& gravity force &&& friction force	
 	public double accelerationCalculator(double posXorY, double Vx, double Vy) {
 		
+
+
+
 		double a= 0;
 		
 		//a= -GravityForce -FrictionForce
