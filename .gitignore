@@ -1,2 +1,6 @@
 *.png
-/out
+out
+.idea
+.gradle
+core
+desktop
