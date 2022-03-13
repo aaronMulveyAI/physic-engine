@@ -32,9 +32,11 @@ public class Ball {
 		velocity.setToZero();
 	}
 
-	public double pithagorVelocity() {
-		double pithagorSum = velocity.distance(velocity);
-		return pithagorSum;
+	public double pithagorVelocity(Vec2D velocities) {
+		double vx = velocities.getX();
+		double vy = velocities.getY();
+		
+		return Math.sqrt(vx*vx + vy*vy);
 	}
 
 	public void setPosition(double x, double y) {
@@ -54,14 +56,13 @@ public class Ball {
 	}
 
 	
-
 	public Vec2D gravityForce(Vec2D position){
 
 		double gravity = -getG();
 		Vec2D slope =course.getSlope(position);
 		
 		return new Vec2D(
-			
+
 				gravity*slope.getX()
 				,
 				gravity*slope.getY()			
@@ -69,15 +70,32 @@ public class Ball {
 	}
 
 
+	public Vec2D kineticFrictionForce(Vec2D velocities, Vec2D position){
 
+		double gravity = -getG();
+		double muKinetic = course.getKineticFriction(position);
 
-	// TODO: ACCELERATION METHODDDDD!!!! &&&&& gravity force &&& friction force
-	public double accelerationCalculator(double posXorY, double Vx, double Vy) {
-		double a = 0;
+		return new Vec2D(
 
-		// a= -GravityForce -FrictionForce
+				muKinetic*gravity*velocities.getX() /pithagorVelocity(velocities)
+				,
+				muKinetic*gravity*velocities.getY() /pithagorVelocity(velocities)
+		);
+	}
 
-		return a;// FOR X or Y
+	public Vec2D accelerationCalculator(Vec2D velocities, Vec2D positions) {
+
+		// a = GravityForce + FrictionForce
+
+		Vec2D gravity = gravityForce(position);
+		Vec2D kineticFriction = kineticFrictionForce(velocities, position);
+
+		return new Vec2D(
+
+			gravity.getX()+kineticFriction.getX()
+			,
+			gravity.getY()+kineticFriction.getY()
+		);
 	}
 
 	// SECOND ORDER EULER METHOD
@@ -88,8 +106,11 @@ public class Ball {
 
 		// ACCELERATION:
 
-		double aX = accelerationCalculator(getPositionX(), getVelocityX(), getVelocityY());
-		double aY = accelerationCalculator(getPositionX(), getVelocityX(), getVelocityY());
+
+		Vec2D acceleration = accelerationCalculator(new Vec2D(getVelocityX(), getVelocityX()), new Vec2D(getPositionX(), getPositionY()) );
+
+		double aX = acceleration.getX();
+		double aY = acceleration.getY();
 
 		// NEW VELOCITES:
 
@@ -113,7 +134,7 @@ public class Ball {
 
 	public double[] unitVector(double Vx, double Vy) {
 
-		double unit[] = { Vx / pithagorVelocity(), Vy / pithagorVelocity() };
+		double unit[] = { Vx / pithagorVelocity(new Vec2D(Vx, Vy)), Vy / pithagorVelocity(new Vec2D(Vx, Vy)) };
 
 		// thinking example: 5 -> 3 on x and 4 on y
 		// its unit vector will be 3/5 on x and 4/5 on y
