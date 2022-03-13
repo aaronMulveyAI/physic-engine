@@ -16,6 +16,8 @@ public class GolfCourse {
 	Vec2D sandPitTopRight;
 	Vec2D sandPitBottomLeft;
 
+	final double H = 0.001;
+
 	public GolfCourse(MathExpression profile, Vec2D startPos, Vec2D targetPos, double targetRadius, double kineticFriction, double staticFriction) {
 		this.profile = profile;
 		this.startPos = startPos;
@@ -47,7 +49,13 @@ public class GolfCourse {
 		return profile.eval(pos);
 	}
 
-	//TODO: getSlope()
+	public Vec2D getSlope(Vec2D pos) {
+		double height = getHeight(pos);
+		return new Vec2D(
+				(getHeight(new Vec2D(pos.getX() + H, pos.getY())) - height) / H,
+				(getHeight(new Vec2D(pos.getX(), pos.getY() + H)) - height) / H
+		);
+	}
 
 	public boolean onTarget(Vec2D pos) {
 		return pos.distance(targetPos) < targetRadius;
