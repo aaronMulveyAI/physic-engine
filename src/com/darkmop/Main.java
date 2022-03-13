@@ -5,7 +5,6 @@ import com.darkmop.course.GolfCourseVisualizer;
 import com.darkmop.util.Vec2D;
 
 import static com.darkmop.course.GolfCourseCreator.createFromFile;
-import static com.darkmop.util.ConsoleUtils.printPixel;
 
 public class Main {
     public static void main(String[] args) {
@@ -13,7 +12,8 @@ public class Main {
         System.out.println(course);
 
         GolfCourseVisualizer visualizer = new GolfCourseVisualizer(course, 400, 400);
-        visualizer.visualiseRange(new Vec2D(-5, -5), new Vec2D(5, 5));
+//        visualizer.visualiseHeightRange(new Vec2D(-50, -50), new Vec2D(50, 50));
+        visualizer.visualiseSlopeRange(new Vec2D(-50, -50), new Vec2D(50, 50));
         visualizer.output("courses/example_input.png");
     }
 }

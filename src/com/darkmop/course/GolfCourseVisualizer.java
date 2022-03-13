@@ -19,7 +19,7 @@ public class GolfCourseVisualizer {
 		this.course = course;
 	}
 
-	public void visualiseRange(Vec2D bottomLeft, Vec2D topRight) {
+	public void visualiseHeightRange(Vec2D bottomLeft, Vec2D topRight) {
 		int width = image.getWidth();
 		int height = image.getHeight();
 		double[][] data = new double[height][width];
@@ -70,6 +70,25 @@ public class GolfCourseVisualizer {
 		g.fillOval((int)startPos.getX(), (int)startPos.getY(), (int)targetSize.getX(), (int)targetSize.getY());
 	}
 
+	public void visualiseSlopeRange(Vec2D bottomLeft, Vec2D topRight) {
+		int width = image.getWidth();
+		int height = image.getHeight();
+		Vec2D step = new Vec2D((topRight.getX() - bottomLeft.getX()) / width, (topRight.getY() - bottomLeft.getY()) / height);
+
+		for(int i = 0; i < height; i++) {
+			for(int j = 0; j < width; j++) {
+				Vec2D pos = new Vec2D(bottomLeft.getX() + step.getX() * j, topRight.getY() - step.getY() * i);
+				Vec2D slope = course.getSlope(pos);
+
+				if (course.inWater(pos)) {
+					image.setRGB(j, i, toARGB(0, 0, 255));
+				} else {
+					image.setRGB(j, i, toARGB(slopeToColor(slope.getX()), slopeToColor(slope.getY()), 0));
+				}
+			}
+		}
+	}
+
 	public void output(String fileName) {
 		File file = new File(fileName);
 		try {
@@ -81,5 +100,10 @@ public class GolfCourseVisualizer {
 
 	static int toARGB(int r, int g, int b) {
 		return 255<<24 | r<<16 | g<<8 | b;
+	}
+
+	static int slopeToColor(double slope) {
+		double exp = Math.pow(Math.E, slope * 10);
+		return (int)((exp / (1.0 + exp)) * 255);
 	}
 }
