@@ -2,8 +2,6 @@ package com.darkmop.course;
 
 import com.darkmop.util.Vec2D;
 
-// Hello World!
-
 public class GolfCourse {
 	MathExpression profile;
 

@@ -31,8 +31,6 @@ public class MathExpression {
 		return (double)engine.get("z");
 	}
 
-	//start now
-
 	@Override
 	public String toString() {
 		return "MathExpression{" + code + "}";
