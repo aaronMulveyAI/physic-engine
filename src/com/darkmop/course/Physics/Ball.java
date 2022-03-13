@@ -1,9 +1,10 @@
 package com.darkmop.course.Physics;
-
+import com.darkmop.course.GolfCourse;
 
 public class Ball {
 		
-	
+	public GolfCourse course;
+
 	private double VelocityX;
 	private double positionX;
 	private double VelocityY;
