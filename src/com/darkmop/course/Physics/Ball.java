@@ -1,72 +1,54 @@
 package com.darkmop.course.Physics;
 
 import com.darkmop.course.GolfCourse;
+import com.darkmop.util.Vec2D;
 
 public class Ball {
 
 	public GolfCourse course;
 
-	private double VelocityX;
-	private double positionX;
-	private double VelocityY;
-	private double positionY;
+	private Vec2D velocity;
+	private Vec2D position;
 
 	// TODO: limit the max velocity???
 
 	public Ball(double x, double y) { // INPUT FROM A FILE
-
-		VelocityX = 0;
-		VelocityY = 0;
-		this.positionX = x;
-		this.positionY = y;
+		this.velocity.setToZero();
+		this.position.setXY(x, y);
 	}
 
 	public Ball() { // TAKING X AND Y COORD AS 0
-
-		VelocityX = 0;
-		VelocityY = 0;
-		this.positionX = 0;
-		this.positionY = 0;
+		this.velocity.setToZero();
+		this.position.setToZero();
 	}
 
-	public void resetLocation() {
-		positionX = 0;
-		positionY = 0;
+	public void resetPosition() {
+		position.setToZero();
 	}
 
 	public void resetVelocity() {
-		VelocityX = 0;
-		VelocityY = 0;
+		velocity.setToZero();
 	}
 
-	public double PisagorVelocity() {
-
-		double pisagorSum = Math.sqrt(VelocityX * VelocityX + VelocityY + VelocityY);
-		return pisagorSum;
+	public double pithagorVelocity() {
+		double pithagorSum = velocity.distance(velocity);
+		return pithagorSum;
 	}
 
-	public void SetCoordinates(double X, double Y) {
-
-		positionX = X;
-		positionY = Y;
-
+	public void setPosition(double x, double y) {
+		position.setXY(x, y);
 	}
 
-	public void SetVelocities(double Vx, double Vy) {
-
-		VelocityX = Vx;
-		VelocityY = Vy;
-
+	public void setVelocities(double vX, double vY) {
+		velocity.setXY(vX, vY);
 	}
 
 	// IS REST?
 	public boolean isStop() {// TODO: group ile belirle -> 0.001f gibi bir kucukluk =<
-
-		if (Math.sqrt(VelocityX * VelocityX + VelocityY + VelocityY) == 0)
+		if (velocity.distance(velocity) == 0)
 			return true;
 
 		return false;
-
 	}
 
 	// TODO:
@@ -77,7 +59,6 @@ public class Ball {
 
 	// TODO: ACCELERATION METHODDDDD!!!! &&&&& gravity force &&& friction force
 	public double accelerationCalculator(double posXorY, double Vx, double Vy) {
-
 		double a = 0;
 
 		// a= -GravityForce -FrictionForce
@@ -115,14 +96,14 @@ public class Ball {
 		// since we created new positions & velocities
 		// we need to set them
 
-		SetVelocities(newVx, newVy);
-		SetCoordinates(newPosX, newPosY);
+		setVelocities(newVx, newVy);
+		setPosition(newPosX, newPosY);
 
 	}
 
 	public double[] unitVector(double Vx, double Vy) {
 
-		double unit[] = { Vx / PisagorVelocity(), Vy / PisagorVelocity() };
+		double unit[] = { Vx / pithagorVelocity(), Vy / pithagorVelocity() };
 
 		// thinking example: 5 -> 3 on x and 4 on y
 		// its unit vector will be 3/5 on x and 4/5 on y
@@ -131,38 +112,34 @@ public class Ball {
 		return unit;
 	}
 
-	// GETTER & SETTER'S
+	// GETTERS
 
 	public double getVelocityX() {
-		return VelocityX;
+		return velocity.getX();
 	}
+	public double getVelocityY() {
+		return velocity.getY();
+	}
+	public double getPositionX() {
+		return position.getX();
+	}
+	public double getPositionY() {
+		return position.getY();
+	}
+
+	// SETTERS
 
 	public void setVelocityX(double velocityX) {
-		VelocityX = velocityX;
+		this.velocity.setX(velocityX);;
 	}
-
-	public double getPositionX() {
-		return positionX;
-	}
-
-	public void setPositionX(double positionX) {
-		this.positionX = positionX;
-	}
-
-	public double getVelocityY() {
-		return VelocityY;
-	}
-
 	public void setVelocityY(double velocityY) {
-		VelocityY = velocityY;
+		this.velocity.setY(velocityY);
 	}
-
-	public double getPositionY() {
-		return positionY;
+	public void setPositionX(double positionX) {
+		this.position.setX(positionX);
 	}
-
 	public void setPositionY(double positionY) {
-		this.positionY = positionY;
+		this.position.setY(positionY);
 	}
 
 }
