@@ -7,6 +7,8 @@ public class Ball {
 
 	public GolfCourse course;
 
+	final double G = 9.80665;
+
 	private Vec2D velocity;
 	private Vec2D position;
 
@@ -51,11 +53,23 @@ public class Ball {
 		return false;
 	}
 
-	// TODO:
-	public double slopeCalculator(double posX, double posY) {
+	
 
-		return 0;
+	public Vec2D gravityForce(Vec2D position){
+
+		double gravity = -getG();
+		Vec2D slope =course.getSlope(position);
+		
+		return new Vec2D(
+			
+				gravity*slope.getX()
+				,
+				gravity*slope.getY()			
+		);
 	}
+
+
+
 
 	// TODO: ACCELERATION METHODDDDD!!!! &&&&& gravity force &&& friction force
 	public double accelerationCalculator(double posXorY, double Vx, double Vy) {
@@ -69,10 +83,6 @@ public class Ball {
 	// SECOND ORDER EULER METHOD
 	public void movementOfball(double stepsizeH) {
 
-		// TODO: ALL CAN BE DONE IN AN ARRAY IF THATs PREFFERED
-
-		// TODO:ACCELERATION YERININ DEGISMEMESI LAZIM OKAY AMA COORINATES VE VELOCITIES
-		// YER DEGISTIRSE SIRALAMADA FARK YOK GIBI?
 
 		// FIRST STEP
 
@@ -114,6 +124,9 @@ public class Ball {
 
 	// GETTERS
 
+	public double getG(){
+		return G;
+	}
 	public double getVelocityX() {
 		return velocity.getX();
 	}
