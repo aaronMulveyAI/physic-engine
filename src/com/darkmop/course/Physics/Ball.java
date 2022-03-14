@@ -5,14 +5,13 @@ import com.darkmop.util.Vec2D;
 
 public class Ball {
 
-	public GolfCourse course;
-
 	final double G = 9.80665;
+	final double maxVelocity=5.0;// TODO: SHOULD BE READ FROM A FILE ?
+
+	public GolfCourse course;
 
 	private Vec2D velocity;
 	private Vec2D position;
-
-	// TODO: limit the max velocity???
 
 	public Ball(double x, double y) { // INPUT FROM A FILE
 		this.velocity.setToZero();
@@ -47,14 +46,26 @@ public class Ball {
 		velocity.setXY(vX, vY);
 	}
 
-	// IS REST?
-	public boolean isStop() {// TODO: group ile belirle -> 0.001f gibi bir kucukluk =<
-		if (velocity.distance(velocity) == 0)
-			return true;
+	public Vec2D limitTheVelocity(Vec2D velocities){
 
-		return false;
+		double Vx= velocities.getX();
+		double Vy= velocities.getY();
+
+		if(Vx>maxVelocity||Vy>maxVelocity){
+
+			Vx=Vx/pithagorVelocity(velocities)*maxVelocity;
+			Vy=Vy/pithagorVelocity(velocities)*maxVelocity;
+
+		}	
+			
+		return new Vec2D(
+				Vx
+				,
+				Vy			
+		);
+		
+
 	}
-
 	
 	public Vec2D gravityForce(Vec2D position){
 
@@ -68,7 +79,7 @@ public class Ball {
 				gravity*slope.getY()			
 		);
 	}
-
+;
 
 	public Vec2D kineticFrictionForce(Vec2D velocities, Vec2D position){
 
