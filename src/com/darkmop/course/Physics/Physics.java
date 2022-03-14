@@ -60,6 +60,7 @@ public class Physics {
             }else{
                 isMoving = false;
             }
+            
         }
 
         return true;
