@@ -14,6 +14,7 @@ public class Physics {
     private final Vec2D FRICCTION_GRASS = new Vec2D(0.05, 0.1); //1- Static fricction  || 2- Kinetic Friction
     private final Vec2D FRICCTION_SAND = new Vec2D(0.05, 0.1); //1- Static fricction  || 2- Kinetic Friction
     private final float TARGET_RADIUS = 0.05f;
+    private final double BALL_MASS = 0.0459f;
     private final float MS = 0.01f;
     public boolean isMoving;
 
@@ -60,21 +61,9 @@ public class Physics {
             }else{
                 isMoving = false;
             }
-
-            
         }
 
         return true;
-    }
-
-    public Vec2D calculateGravityForce(){
-        Vec2D slope  = course.getSlope(ball.getPosition());
-        double slopeX = slope.getX();
-        double slopeY = slope.getY();
-
-        return new Vec2D(
-            ball.getBallMass()*GRAVITY_ACELERATION*slopeX,
-            ball.getBallMass()*GRAVITY_ACELERATION*slopeY);
     }
 
     /**
@@ -108,9 +97,24 @@ public class Physics {
             );
     }
 
-    public double hitBall(){
-        return 2.0;
+    public Vec2D colision(Vec2D velocities){
+
+        
     }
+
+    public void hitBall(Vec2D position, Vec2D velocities){
+        
+        velocities = ball.limitTheVelocity(velocities);
+        
+        do {
+
+            ball.movementOfball(0.0001);
+
+            hasLowVelocity();
+            
+        } while (isMoving);
+    }
+
     public void setMovement(boolean movement){
         isMoving = movement;
     }
