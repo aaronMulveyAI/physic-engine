@@ -97,10 +97,6 @@ public class Physics {
             );
     }
 
-    public Vec2D colision(Vec2D velocities){
-
-        
-    }
 
     public void hitBall(Vec2D position, Vec2D velocities){
         
