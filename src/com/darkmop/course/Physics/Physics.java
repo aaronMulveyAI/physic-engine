@@ -97,15 +97,15 @@ public class Physics {
             );
     }
 
-
     public void hitBall(Vec2D position, Vec2D velocities){
         
         velocities = ball.limitTheVelocity(velocities);
-        
         do {
 
             ball.movementOfball(0.0001);
-
+            position.setX(ball.getPositionX());
+            position.setY(ball.getPositionY());
+            velocities.setXY(ball.getVelocityX(), ball.getVelocityY());
             hasLowVelocity();
             
         } while (isMoving);
