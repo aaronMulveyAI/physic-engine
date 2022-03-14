@@ -53,11 +53,11 @@ public class Ball {
 
 		if(Vx>maxVelocity||Vy>maxVelocity){
 
-			Vx=Vx/pithagorVelocity(velocities)*maxVelocity;
-			Vy=Vy/pithagorVelocity(velocities)*maxVelocity;
+			Vx=(Vx/pithagorVelocity(velocities))*maxVelocity;
+			Vy=(Vy/pithagorVelocity(velocities))*maxVelocity;
 
 		}	
-			
+
 		return new Vec2D(
 				Vx
 				,
