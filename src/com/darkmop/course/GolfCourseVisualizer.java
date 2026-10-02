@@ -34,7 +34,7 @@ public class GolfCourseVisualizer {
 			}
 		}
 
-		double scale =  (255.0 - MIN_RGB_VALUE) / maxHeight;
+		double scale = maxHeight == 0 ? 0 : (255.0 - MIN_RGB_VALUE) / maxHeight;
 
 		for(int i = 0; i < height; i++) {
 			for(int j = 0; j < width; j++) {
@@ -51,23 +51,16 @@ public class GolfCourseVisualizer {
 
 		Graphics2D g = (Graphics2D) image.getGraphics();
 
-		Vec2D startPos = new Vec2D(
-				(course.getStartPos().getX() - bottomLeft.getX()) / step.getX(),
-				(course.getStartPos().getY() - bottomLeft.getY()) / step.getY()
-		);
-
-		Vec2D targetPos = new Vec2D(
-				(course.getTargetPos().getX() - bottomLeft.getX()) / step.getX(),
-				(course.getTargetPos().getY() - bottomLeft.getY()) / step.getY()
-		);
+		Vec2D startPos = worldToPixel(course.getStartPos(), bottomLeft, topRight, step);
+		Vec2D targetPos = worldToPixel(course.getTargetPos(), bottomLeft, topRight, step);
 
 		Vec2D targetSize = new Vec2D(course.getTargetRadius() / step.getX() * 2, course.getTargetRadius() / step.getY() * 2);
 
 		g.setColor(new Color(255, 0, 0));
-		g.fillOval((int)targetPos.getX(), (int)targetPos.getY(), (int)targetSize.getX(), (int)targetSize.getY());
+		g.fillOval((int)(targetPos.getX() - targetSize.getX() / 2), (int)(targetPos.getY() - targetSize.getY() / 2), (int)targetSize.getX(), (int)targetSize.getY());
 
 		g.setColor(new Color(255, 255, 255));
-		g.fillOval((int)startPos.getX(), (int)startPos.getY(), (int)targetSize.getX(), (int)targetSize.getY());
+		g.fillOval((int)(startPos.getX() - targetSize.getX() / 2), (int)(startPos.getY() - targetSize.getY() / 2), (int)targetSize.getX(), (int)targetSize.getY());
 	}
 
 	public void visualiseSlopeRange(Vec2D bottomLeft, Vec2D topRight) {
@@ -99,11 +92,31 @@ public class GolfCourseVisualizer {
 	}
 
 	static int toARGB(int r, int g, int b) {
+		r = clampColor(r);
+		g = clampColor(g);
+		b = clampColor(b);
 		return 255<<24 | r<<16 | g<<8 | b;
 	}
 
 	static int slopeToColor(double slope) {
 		double exp = Math.pow(Math.E, slope * 10);
 		return (int)((exp / (1.0 + exp)) * 255);
+	}
+
+	private static int clampColor(int value) {
+		if(value < 0) {
+			return 0;
+		}
+		if(value > 255) {
+			return 255;
+		}
+		return value;
+	}
+
+	private static Vec2D worldToPixel(Vec2D position, Vec2D bottomLeft, Vec2D topRight, Vec2D step) {
+		return new Vec2D(
+				(position.getX() - bottomLeft.getX()) / step.getX(),
+				(topRight.getY() - position.getY()) / step.getY()
+		);
 	}
 }

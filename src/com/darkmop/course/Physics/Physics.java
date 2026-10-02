@@ -1,119 +1,181 @@
 package com.darkmop.course.Physics;
 
-import java.util.Vector;
-
 import com.darkmop.course.GolfCourse;
 import com.darkmop.util.Vec2D;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Physics {
-    
-    private GolfCourse course;
-    private Ball ball;
-    private final float VELOCITY_ERROR = 0.0001f;
-    private final float GRAVITY_ACELERATION = -9.81f;
-    private final Vec2D FRICCTION_GRASS = new Vec2D(0.05, 0.1); //1- Static fricction  || 2- Kinetic Friction
-    private final Vec2D FRICCTION_SAND = new Vec2D(0.05, 0.1); //1- Static fricction  || 2- Kinetic Friction
-    private final float TARGET_RADIUS = 0.05f;
-    private final double BALL_MASS = 0.0459f;
-    private final float MS = 0.01f;
-    public boolean isMoving;
+	private static final double GRAVITY = 9.80665;
+	private static final double DEFAULT_TIME_STEP = 0.01;
+	private static final int DEFAULT_MAX_STEPS = 20000;
+	private static final double STOP_SPEED = 0.001;
 
-    public Physics(GolfCourse course, Ball ball){
-        this.course = course;
-        this.ball = ball;
-    }
+	private final GolfCourse course;
+	private final Ball ball;
+	private double time = 0;
+	private PhysicsSnapshot lastSnapshot;
 
-    /**
-     * This method calculates if the ball has a very low velocity
-     * assuming a small velocity error. if the velocity is smaller
-     * than the error it set ball belocity to 0.
-     * @return
-     */
-    public boolean hasLowVelocity(){
+	public boolean isMoving;
 
-        if(ball.getVelocityX() < VELOCITY_ERROR && ball.getVelocityY() < VELOCITY_ERROR){
-            ball.setVelocityX(0);
-            ball.setVelocityY(0);
-            isInSlope();
-            return true;
-        }else{
-            return false;
-        }
-    }
+	public Physics(GolfCourse course, Ball ball) {
+		this.course = course;
+		this.ball = ball;
+		this.lastSnapshot = createSnapshot(0, new Vec2D(0, 0), new Vec2D(0, 0), new Vec2D(0, 0), "ready");
+	}
 
-    /**
-     * This  method calculates if the ball is in slope and if the 
-     * slope is bigger enougth for continue with the movement.
-     * @return
-     */
-    public boolean isInSlope(){
+	public PhysicsSnapshot step(double dt) {
+		Vec2D position = ball.getPosition();
+		Vec2D velocity = ball.getVelocity();
+		Vec2D slope = course.getSlope(position);
+		Vec2D gravityAcceleration = slope.multiply(-GRAVITY);
+		double kineticFriction = course.getKineticFriction(position);
+		double staticFriction = course.getStaticFriction(position);
 
-        Vec2D slope = course.getSlope(new Vec2D(ball.getPositionX(), ball.getPositionY()));
-        double x = slope.getX();
-        double y = slope.getY();
+		if(shouldStayAtRest(velocity, slope, staticFriction)) {
+			ball.resetVelocity();
+			isMoving = false;
+			lastSnapshot = createSnapshot(dt, slope, gravityAcceleration, new Vec2D(0, 0), stateAt(position));
+			return lastSnapshot;
+		}
 
-        if(x == 0 && y == 0){
-            return false;
-        }else if(x != 0 || y != 0){
+		Vec2D frictionAcceleration = calculateFriction(velocity, gravityAcceleration, kineticFriction);
+		Vec2D acceleration = gravityAcceleration.add(frictionAcceleration);
+		Vec2D newVelocity = velocity.add(acceleration.multiply(dt));
 
-            if(MS > Math.sqrt((Math.pow(x, 2) + Math.pow(y, 2)))){
-                isMoving = true;
-            }else{
-                isMoving = false;
-            }
-        }
+		if(shouldStopFromFriction(velocity, newVelocity, gravityAcceleration, frictionAcceleration)) {
+			newVelocity = new Vec2D(0, 0);
+		}
 
-        return true;
-    }
+		Vec2D newPosition = position.add(newVelocity.multiply(dt));
+		ball.setVelocity(newVelocity);
+		ball.setPosition(newPosition);
+		time += dt;
 
-    /**
-     * This method get the ball position(X,Y) and target position(X,Y)
-     * and calculate the euclidean distance, if the distance is smaller
-     * to the target position it returns true, if not it returns false.
-     * @return 
-     */
-    public boolean isInTarget(){
-        double ballPositionX = ball.getPositionX();
-        double ballPositionY = ball.getPositionY();
-        double targetPositionX = course.getTargetPos().getX();
-        double targetPositionY = course.getTargetPos().getY();
-        return TARGET_RADIUS > Math.sqrt((Math.pow((ballPositionX - targetPositionX), 2) + Math.pow((ballPositionY - targetPositionY), 2)));
-    }
+		String state = stateAt(newPosition);
+		if(state.equals("target") || state.equals("water")) {
+			ball.resetVelocity();
+			isMoving = false;
+		} else {
+			isMoving = ball.getSpeed() > STOP_SPEED || slopeOvercomesStaticFriction(course.getSlope(newPosition), course.getStaticFriction(newPosition));
+		}
 
-    /**
-     * This method get the ball position(X,Y) and target position(X,Y)
-     * and calculate the absolute distance  
-     * @return A vector 2D with distance of X & Y
-     */
-    public Vec2D distanceToTheTarget(){
-        
-        double ballPositionX = ball.getPositionX();
-        double ballPositionY = ball.getPositionY();
-        double targetPositionX = course.getTargetPos().getX();
-        double targetPositionY = course.getTargetPos().getY();
-        return new Vec2D(
-            Math.abs(targetPositionX-ballPositionX),
-            Math.abs(targetPositionY-ballPositionY)
-            );
-    }
+		lastSnapshot = createSnapshot(dt, slope, gravityAcceleration, frictionAcceleration, state);
+		return lastSnapshot;
+	}
 
-    public void hitBall(Vec2D position, Vec2D velocities){
-        
-        velocities = ball.limitTheVelocity(velocities);
-        do {
+	public List<PhysicsSnapshot> hitBall(Vec2D position, Vec2D velocities) {
+		return hitBall(position, velocities, DEFAULT_TIME_STEP, DEFAULT_MAX_STEPS);
+	}
 
-            ball.movementOfball(0.0001);
-            position.setX(ball.getPositionX());
-            position.setY(ball.getPositionY());
-            velocities.setXY(ball.getVelocityX(), ball.getVelocityY());
-            hasLowVelocity();
-            
-        } while (isMoving);
-    }
+	public List<PhysicsSnapshot> hitBall(Vec2D position, Vec2D velocities, double dt, int maxSteps) {
+		ball.setPosition(position);
+		ball.setVelocity(velocities);
+		isMoving = true;
 
-    public void setMovement(boolean movement){
-        isMoving = movement;
-    }
+		List<PhysicsSnapshot> snapshots = new ArrayList<>();
+		for(int i = 0; i < maxSteps && isMoving; i++) {
+			snapshots.add(step(dt));
+		}
+		return snapshots;
+	}
 
+	public boolean hasLowVelocity() {
+		if(ball.getSpeed() < STOP_SPEED) {
+			ball.resetVelocity();
+			isMoving = slopeOvercomesStaticFriction(course.getSlope(ball.getPosition()), course.getStaticFriction(ball.getPosition()));
+			return true;
+		}
+		return false;
+	}
 
+	public boolean isInSlope() {
+		return slopeOvercomesStaticFriction(course.getSlope(ball.getPosition()), course.getStaticFriction(ball.getPosition()));
+	}
+
+	public boolean isInTarget() {
+		return course.onTarget(ball.getPosition());
+	}
+
+	public Vec2D distanceToTheTarget() {
+		return new Vec2D(
+				Math.abs(course.getTargetPos().getX() - ball.getPositionX()),
+				Math.abs(course.getTargetPos().getY() - ball.getPositionY())
+		);
+	}
+
+	public PhysicsSnapshot getLastSnapshot() {
+		return lastSnapshot;
+	}
+
+	public Ball getBall() {
+		return ball;
+	}
+
+	public void setMovement(boolean movement) {
+		isMoving = movement;
+	}
+
+	private boolean shouldStayAtRest(Vec2D velocity, Vec2D slope, double staticFriction) {
+		return velocity.magnitude() < STOP_SPEED && !slopeOvercomesStaticFriction(slope, staticFriction);
+	}
+
+	private boolean slopeOvercomesStaticFriction(Vec2D slope, double staticFriction) {
+		return slope.magnitude() > staticFriction;
+	}
+
+	private Vec2D calculateFriction(Vec2D velocity, Vec2D gravityAcceleration, double kineticFriction) {
+		Vec2D direction;
+		if(velocity.magnitude() > STOP_SPEED) {
+			direction = velocity.normalized().multiply(-1);
+		} else if(gravityAcceleration.magnitude() > 0) {
+			direction = gravityAcceleration.normalized().multiply(-1);
+		} else {
+			return new Vec2D(0, 0);
+		}
+
+		return direction.multiply(kineticFriction * GRAVITY);
+	}
+
+	private boolean shouldStopFromFriction(Vec2D velocity, Vec2D newVelocity, Vec2D gravityAcceleration, Vec2D frictionAcceleration) {
+		if(velocity.magnitude() <= STOP_SPEED) {
+			return false;
+		}
+		boolean reversedDirection = velocity.dot(newVelocity) <= 0;
+		boolean frictionDominates = frictionAcceleration.magnitude() >= gravityAcceleration.magnitude();
+		return reversedDirection && frictionDominates;
+	}
+
+	private String stateAt(Vec2D position) {
+		if(course.onTarget(position)) {
+			return "target";
+		}
+		if(course.inWater(position)) {
+			return "water";
+		}
+		if(course.inSand(position)) {
+			return "sand";
+		}
+		return ball.getSpeed() > STOP_SPEED ? "rolling" : "resting";
+	}
+
+	private PhysicsSnapshot createSnapshot(double dt, Vec2D slope, Vec2D gravityAcceleration, Vec2D frictionAcceleration, String state) {
+		Vec2D acceleration = gravityAcceleration.add(frictionAcceleration);
+		Vec2D position = ball.getPosition();
+		return new PhysicsSnapshot(
+				time,
+				dt,
+				position,
+				course.getHeight(position),
+				ball.getVelocity(),
+				slope,
+				gravityAcceleration,
+				frictionAcceleration,
+				acceleration,
+				course.getKineticFriction(position),
+				course.getStaticFriction(position),
+				state
+		);
+	}
 }

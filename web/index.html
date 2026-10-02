@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Golf Physics Engine</title>
+  </head>
+  <body>
+    <main id="app">
+      <section class="viewport" aria-label="3D golf physics demo">
+        <canvas id="scene"></canvas>
+        <div class="hud">
+          <div>
+            <span class="label">STATE</span>
+            <strong id="state">ready</strong>
+          </div>
+          <div>
+            <span id="countLabel" class="label">STROKES</span>
+            <strong id="strokes">0</strong>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel" aria-label="Physics controls and calculations">
+        <header>
+          <p class="eyebrow">Playable Portfolio Demo</p>
+          <h1 id="demoTitle">Golf Physics Engine</h1>
+          <p id="demoIntro" class="intro">A small custom physics engine rendered as a playable 3D golf demo, with the live solver exposed frame by frame.</p>
+        </header>
+
+        <section class="mode-switch" aria-label="Simulation mode">
+          <button id="golfMode" type="button" class="mode active" aria-pressed="true">
+            <span>Golf mode</span>
+            <small>Terrain gradient + friction</small>
+          </button>
+          <button id="spaceMode" type="button" class="mode" aria-pressed="false">
+            <span>Space mode</span>
+            <small>Planet transfer + gravity</small>
+          </button>
+        </section>
+
+        <section class="controls" aria-label="Shot controls">
+          <label>
+            <span id="angleLabel">Angle</span>
+            <output id="angleValue">18°</output>
+            <input id="angle" type="range" min="-180" max="180" value="18" step="1" />
+          </label>
+
+          <label>
+            <span id="powerLabel">Power</span>
+            <output id="powerValue">3.2 m/s</output>
+            <input id="power" type="range" min="0.4" max="5" value="3.2" step="0.1" />
+          </label>
+
+          <div class="button-row">
+            <button id="hit" type="button">Hit</button>
+            <button id="reset" type="button" class="secondary">Reset</button>
+          </div>
+        </section>
+
+        <section class="readout" aria-label="Live physics calculations">
+          <h2>Live Calculations</h2>
+          <dl id="telemetry"></dl>
+        </section>
+
+        <section class="architecture" aria-label="Engine architecture">
+          <h2>Engine Architecture</h2>
+          <ol id="architectureList">
+            <li><strong>World</strong><span>height field, target, water and sand zones</span></li>
+            <li><strong>Body</strong><span>position, velocity, mass and speed cap</span></li>
+            <li><strong>Forces</strong><span>gravity from slope plus kinetic/static friction</span></li>
+            <li><strong>Integrator</strong><span>fixed timestep semi-implicit Euler</span></li>
+            <li><strong>Telemetry</strong><span>snapshot exported every frame for the UI</span></li>
+          </ol>
+        </section>
+
+        <section class="equations" aria-label="Physics equations">
+          <h2>Physics Model</h2>
+          <div id="equations"></div>
+        </section>
+      </aside>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

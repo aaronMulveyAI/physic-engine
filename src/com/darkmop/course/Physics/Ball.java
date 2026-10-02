@@ -4,23 +4,26 @@ import com.darkmop.course.GolfCourse;
 import com.darkmop.util.Vec2D;
 
 public class Ball {
-
-	final double G = 9.80665;
-	final double maxVelocity = 5.0;// TODO: SHOULD BE READ FROM A FILE ?
+	public static final double DEFAULT_MASS = 0.0459;
+	public static final double DEFAULT_MAX_VELOCITY = 5.0;
 
 	public GolfCourse course;
 
+	private final double mass;
+	private final double maxVelocity;
 	private Vec2D velocity;
 	private Vec2D position;
 
-	public Ball(double x, double y) { // INPUT FROM A FILE
-		this.velocity.setToZero();
-		this.position.setXY(x, y);
+	public Ball(double x, double y, GolfCourse course) {
+		this(x, y, course, DEFAULT_MASS, DEFAULT_MAX_VELOCITY);
 	}
 
-	public Ball() { // TAKING X AND Y COORD AS 0
-		this.velocity.setToZero();
-		this.position.setToZero();
+	public Ball(double x, double y, GolfCourse course, double mass, double maxVelocity) {
+		this.velocity = new Vec2D(0, 0);
+		this.position = new Vec2D(x, y);
+		this.course = course;
+		this.mass = mass;
+		this.maxVelocity = maxVelocity;
 	}
 
 	public void resetPosition() {
@@ -32,158 +35,96 @@ public class Ball {
 	}
 
 	public double pithagorVelocity(Vec2D velocities) {
-		double vx = velocities.getX();
-		double vy = velocities.getY();
-		
-		return Math.sqrt(vx*vx + vy*vy);
+		return velocities.magnitude();
 	}
 
 	public void setPosition(double x, double y) {
 		position.setXY(x, y);
 	}
 
+	public void setPosition(Vec2D position) {
+		this.position = new Vec2D(position.getX(), position.getY());
+	}
+
 	public void setVelocities(double vX, double vY) {
-		velocity.setXY(vX, vY);
+		setVelocity(new Vec2D(vX, vY));
 	}
 
-	public Vec2D limitTheVelocity(Vec2D velocities){
-
-		double Vx= velocities.getX();
-		double Vy= velocities.getY();
-
-		if(Vx>maxVelocity||Vy>maxVelocity){
-			Vx=(Vx/pithagorVelocity(velocities))*maxVelocity;
-			Vy=(Vy/pithagorVelocity(velocities))*maxVelocity;
-
-		}	
-
-		return new Vec2D(
-				Vx
-				,
-				Vy			
-		);
-		
-
-	}
-	
-	public Vec2D gravityForce(Vec2D position){
-
-		double gravity = -getG();
-		Vec2D slope =course.getSlope(position);
-		
-		return new Vec2D(
-
-				gravity*slope.getX()
-				,
-				gravity*slope.getY()			
-		);
-	}
-;
-
-	public Vec2D kineticFrictionForce(Vec2D velocities, Vec2D position){
-
-		double gravity = -getG();
-		double muKinetic = course.getKineticFriction(position);
-
-		return new Vec2D(
-
-				muKinetic*gravity*velocities.getX() /pithagorVelocity(velocities)
-				,
-				muKinetic*gravity*velocities.getY() /pithagorVelocity(velocities)
-		);
+	public void setVelocity(Vec2D velocity) {
+		this.velocity = limitTheVelocity(velocity);
 	}
 
-	public Vec2D accelerationCalculator(Vec2D velocities, Vec2D positions) {
-
-		// a = GravityForce + FrictionForce
-
-		Vec2D gravity = gravityForce(position);
-		Vec2D kineticFriction = kineticFrictionForce(velocities, position);
-
-		return new Vec2D(
-
-			gravity.getX()+kineticFriction.getX()
-			,
-			gravity.getY()+kineticFriction.getY()
-		);
+	public Vec2D limitTheVelocity(Vec2D velocities) {
+		double speed = velocities.magnitude();
+		if(speed > maxVelocity) {
+			return velocities.normalized().multiply(maxVelocity);
+		}
+		return new Vec2D(velocities.getX(), velocities.getY());
 	}
 
-	// SECOND ORDER EULER METHOD
+	public void integrate(Vec2D acceleration, double dt) {
+		Vec2D newVelocity = limitTheVelocity(velocity.add(acceleration.multiply(dt)));
+		Vec2D newPosition = position.add(newVelocity.multiply(dt));
+		velocity = newVelocity;
+		position = newPosition;
+	}
+
+	// Kept for compatibility with the original code path.
 	public void movementOfball(double stepsizeH) {
-
-
-		// FIRST STEP
-
-		// ACCELERATION:
-
-
-		Vec2D acceleration = accelerationCalculator(new Vec2D(getVelocityX(), getVelocityX()), new Vec2D(getPositionX(), getPositionY()) );
-
-		double aX = acceleration.getX();
-		double aY = acceleration.getY();
-
-		// NEW VELOCITES:
-
-		double newVx = getVelocityX() + aX * stepsizeH;
-		double newVy = getVelocityY() + aY * stepsizeH;
-
-		// NEW COORDINATES:
-
-		double newPosX = getPositionX() + getVelocityX() * stepsizeH;
-		double newPosY = getPositionY() + getVelocityY() * stepsizeH;
-
-		// SECOND STEP
-
-		// since we created new positions & velocities
-		// we need to set them
-
-		setVelocities(newVx, newVy);
-		setPosition(newPosX, newPosY);
-
+		Physics physics = new Physics(course, this);
+		physics.step(stepsizeH);
 	}
 
 	public double[] unitVector(double Vx, double Vy) {
-
-		double unit[] = { Vx / pithagorVelocity(new Vec2D(Vx, Vy)), Vy / pithagorVelocity(new Vec2D(Vx, Vy)) };
-
-		// thinking example: 5 -> 3 on x and 4 on y
-		// its unit vector will be 3/5 on x and 4/5 on y
-		// finally the vector itself will be 1
-
-		return unit;
+		Vec2D unit = new Vec2D(Vx, Vy).normalized();
+		return new double[] { unit.getX(), unit.getY() };
 	}
 
-	// GETTERS
-
-	public double getG(){
-		return G;
+	public double getMass() {
+		return mass;
 	}
+
+	public Vec2D getPosition() {
+		return new Vec2D(position.getX(), position.getY());
+	}
+
+	public Vec2D getVelocity() {
+		return new Vec2D(velocity.getX(), velocity.getY());
+	}
+
+	public double getSpeed() {
+		return velocity.magnitude();
+	}
+
 	public double getVelocityX() {
 		return velocity.getX();
 	}
+
 	public double getVelocityY() {
 		return velocity.getY();
 	}
+
 	public double getPositionX() {
 		return position.getX();
 	}
+
 	public double getPositionY() {
 		return position.getY();
 	}
 
-	// SETTERS
-
 	public void setVelocityX(double velocityX) {
-		this.velocity.setX(velocityX);;
-	}
-	public void setVelocityY(double velocityY) {
-		this.velocity.setY(velocityY);
-	}
-	public void setPositionX(double positionX) {
-		this.position.setX(positionX);
-	}
-	public void setPositionY(double positionY) {
-		this.position.setY(positionY);
+		setVelocities(velocityX, velocity.getY());
 	}
 
+	public void setVelocityY(double velocityY) {
+		setVelocities(velocity.getX(), velocityY);
+	}
+
+	public void setPositionX(double positionX) {
+		position.setX(positionX);
+	}
+
+	public void setPositionY(double positionY) {
+		position.setY(positionY);
+	}
 }

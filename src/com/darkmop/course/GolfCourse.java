@@ -66,6 +66,9 @@ public class GolfCourse {
 	}
 
 	public boolean inSand(Vec2D pos) {
+		if(!hasSandPit) {
+			return false;
+		}
 		return pos.getX() > sandPitBottomLeft.getX() && pos.getX() < sandPitTopRight.getX() && pos.getY() > sandPitBottomLeft.getY() && pos.getY() < sandPitTopRight.getY();
 	}
 
